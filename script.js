@@ -1,133 +1,129 @@
-// Constants
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
-const gridSize = 20; // Size of the grid cells
-const rowCount = 20; // Number of rows in the maze
-const colCount = 20; // Number of columns in the maze
+canvas.width = 400;
+canvas.height = 400;
 
-// Maze layout (1 = wall, 0 = path)
+// Maze layout (1 = wall, 0 = path, 2 = pellet)
 const maze = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 2, 0, 0, 0, 2, 1, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 2, 0, 0, 2, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 2, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
-// Game Objects
+// Grid size
+const gridSize = 20;
+const rowCount = maze.length;
+const colCount = maze[0].length;
+
+// Pac-Man Class
 class PacMan {
     constructor(x, y) {
         this.x = x;
         this.y = y;
         this.direction = 'right'; // Initial direction
+        this.speed = 4; // Pac-Man speed
     }
 
     draw() {
         context.fillStyle = 'yellow';
         context.beginPath();
-        context.arc(this.x + gridSize / 2, this.y + gridSize / 2, gridSize / 2 - 2, 0.2 * Math.PI, 1.8 * Math.PI); // Pac-Man shape
+        context.arc(this.x + gridSize / 2, this.y + gridSize / 2, gridSize / 2 - 2, 0.2 * Math.PI, 1.8 * Math.PI);
         context.lineTo(this.x + gridSize / 2, this.y + gridSize / 2);
         context.fill();
     }
 
     move() {
-        const oldX = this.x;
-        const oldY = this.y;
+        let newX = this.x;
+        let newY = this.y;
 
         switch (this.direction) {
             case 'up':
-                this.y -= gridSize;
+                newY -= this.speed;
                 break;
             case 'down':
-                this.y += gridSize;
+                newY += this.speed;
                 break;
             case 'left':
-                this.x -= gridSize;
+                newX -= this.speed;
                 break;
             case 'right':
-                this.x += gridSize;
+                newX += this.speed;
                 break;
         }
 
-        // Check for wall collision
-        if (!this.canMove(this.x, this.y)) {
-            this.x = oldX;
-            this.y = oldY;
-        } else {
-            // Check if the player collected a pellet
-            this.checkPelletCollision();
+        if (this.canMove(newX, newY)) {
+            this.x = newX;
+            this.y = newY;
+            this.checkPellet(newX, newY);
         }
     }
 
     canMove(newX, newY) {
-        const newRow = newY / gridSize;
-        const newCol = newX / gridSize;
-        return maze[newRow][newCol] === 0; // Check if the new position is a path
+        const newRow = Math.floor(newY / gridSize);
+        const newCol = Math.floor(newX / gridSize);
+        return maze[newRow] && maze[newRow][newCol] !== 1; // Check if the new position is a path
     }
 
-    checkPelletCollision() {
-        const pelletIndex = Math.floor(this.y / gridSize) * colCount + Math.floor(this.x / gridSize);
-        if (maze[Math.floor(this.y / gridSize)][Math.floor(this.x / gridSize)] === 0) {
+    checkPellet(newX, newY) {
+        const newRow = Math.floor(newY / gridSize);
+        const newCol = Math.floor(newX / gridSize);
+        if (maze[newRow][newCol] === 2) {
+            maze[newRow][newCol] = 0; // Mark pellet as collected
             score += 10; // Increase score
-            maze[Math.floor(this.y / gridSize)][Math.floor(this.x / gridSize)] = 2; // Mark pellet as collected
         }
     }
 }
 
+// Ghost Class
 class Ghost {
     constructor(x, y, color) {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.direction = this.randomDirection(); // Random initial direction
+        this.direction = this.randomDirection();
+        this.speed = 2; // Ghost speed
     }
 
     draw() {
         context.fillStyle = this.color;
-        context.fillRect(this.x, this.y, gridSize, gridSize); // Draw ghost as a square
+        context.fillRect(this.x, this.y, gridSize, gridSize);
     }
 
     move() {
-        const oldX = this.x;
-        const oldY = this.y;
+        let newX = this.x;
+        let newY = this.y;
 
         switch (this.direction) {
             case 'up':
-                this.y -= gridSize;
+                newY -= this.speed;
                 break;
             case 'down':
-                this.y += gridSize;
+                newY += this.speed;
                 break;
             case 'left':
-                this.x -= gridSize;
+                newX -= this.speed;
                 break;
             case 'right':
-                this.x += gridSize;
+                newX += this.speed;
                 break;
         }
 
-        // Check for wall collision
-        if (!this.canMove(this.x, this.y)) {
-            this.x = oldX;
-            this.y = oldY;
-            this.direction = this.randomDirection(); // Change direction if it hits a wall
+        if (this.canMove(newX, newY)) {
+            this.x = newX;
+            this.y = newY;
+        } else {
+            this.direction = this.randomDirection(); // Change direction on wall collision
         }
     }
 
     canMove(newX, newY) {
-        const newRow = newY / gridSize;
-        const newCol = newX / gridSize;
-        return maze[newRow] && maze[newRow][newCol] === 0; // Check if the new position is a path and within bounds
+        const newRow = Math.floor(newY / gridSize);
+        const newCol = Math.floor(newX / gridSize);
+        return maze[newRow] && maze[newRow][newCol] !== 1; // Check if the new position is a path
     }
 
     randomDirection() {
@@ -207,16 +203,16 @@ function drawMaze() {
             } else if (maze[row][col] === 0) {
                 context.fillStyle = 'black'; // Path color
                 context.fillRect(col * gridSize, row * gridSize, gridSize, gridSize);
+            } else if (maze[row][col] === 2) {
                 context.fillStyle = 'yellow'; // Pellet color
                 context.beginPath();
                 context.arc(col * gridSize + gridSize / 2, row * gridSize + gridSize / 2, 3, 0, Math.PI * 2);
                 context.fill();
             }
-        }
     }
 }
 
-// Handle Key Presses
+// Handle Keyboard Input
 function handleKeyPress(event) {
     switch (event.key) {
         case 'ArrowUp':
@@ -234,5 +230,5 @@ function handleKeyPress(event) {
     }
 }
 
-// Start the Game
+// Start the game
 initGame();
