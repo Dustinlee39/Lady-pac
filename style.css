@@ -3,30 +3,21 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
     background-color: black;
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: 'Press Start 2P', cursive; /* Retro font */
 }
 
 #gameContainer {
-    position: relative;
+    text-align: center;
 }
 
-canvas {
-    border: 1px solid white;
+#gameCanvas {
+    border: 2px solid #000;
+    background-color: #000; /* Dark background for maze */
 }
 
-#scoreDisplay, #livesDisplay {
-    position: absolute;
-    top: 10px;
-    font-size: 18px;
-}
-
-#scoreDisplay {
-    left: 10px;
-}
-
-#livesDisplay {
-    right: 10px;
+#scoreBoard {
+    margin-top: 10px;
+    font-size: 20px;
 }
