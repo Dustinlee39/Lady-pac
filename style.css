@@ -1,13 +1,21 @@
-body {
+/* Resetting default styles */
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Centering the canvas */
+html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
     background-color: black;
 }
 
+/* Responsive canvas */
 canvas {
-    border: 5px solid white;
-    background-color: black;
+    width: 90vmin;
+    height: auto;
 }
